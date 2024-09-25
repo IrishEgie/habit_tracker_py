@@ -38,11 +38,11 @@ graph_params = {
 # response = rq.post(url=graph_endpoint, json=graph_params, headers=graph_header)
 # print(response.text)
 
-user_response = input("Write 'y' to post a pixel to your endpoint, 't' to edit: ")
+user_response = input("Write 'y' to post a pixel to your endpoint, 't' to edit, 'd' to delete: ")
 
 pixel_params = {
-    "date": dt.now().strftime("%Y%m%d"),
-    "quantity": "9.43",
+    "date": "20240922", #dt.now().strftime("%Y%m%d")
+    "quantity": "10.3",
 }
 
 if user_response == "y":
@@ -51,7 +51,7 @@ if user_response == "y":
     print(pixel_params["date"])
     print(post_pixel.text)
 
-elif user_response == "t":
+elif user_response == "t" or user_response == "d":
     while True:
         pixel_date = str(input("Please input a date to edit (format is yyyyMMdd): "))
 
@@ -60,12 +60,22 @@ elif user_response == "t":
         else:
             print("Incorrect date format. Please try again (format: yyyyMMdd).")
 
-    pixel_edit = input("Please input the new quantity: ")
+    if user_response == "t":
+        pixel_edit = input("Please input the new quantity: ")
 
-    pixel_params["quantity"] = str(pixel_edit)  # Update the quantity in pixel_params
-    post_pixel = rq.put(url=f"{graph_endpoint}/{graph_params['id']}/{pixel_date}", headers=graph_header, json=pixel_params)
-    post_pixel.raise_for_status()
-
+        pixel_params["quantity"] = str(pixel_edit)  # Update the quantity in pixel_params
+        post_pixel = rq.put(url=f"{graph_endpoint}/{graph_params['id']}/{pixel_date}", headers=graph_header, json=pixel_params) 
+        post_pixel.raise_for_status()
+    elif user_response == "d":
+        post_pixel = rq.delete(url=f"{graph_endpoint}/{graph_params['id']}/{pixel_date}", headers=graph_header)
+        
+        # Check if the deletion was successful
+        if post_pixel.status_code == 200:
+            print(f"Pixel data for {pixel_date} successfully deleted.")
+        else:
+            print(f"Failed to delete pixel for {pixel_date}.")
+            print("Response:", post_pixel.text)  # Provide more information in case of failure
+        
     print("Date and quantity successfully updated.")
 else:
-    print("No input detected")
+    print("Incorrect input detected")
